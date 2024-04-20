@@ -1,28 +1,28 @@
 - [1. 说在前面](#1-说在前面)
 - [2. 场景分析](#2-场景分析)
-    - [2.1 链式传递](#21-链式传递)
-    - [2.2 主动取消](#22-主动取消)
-    - [2.3 任务超时](#23-任务超时)
-    - [2.3 数据存储](#23-数据存储)
+  - [2.1 链式传递](#21-链式传递)
+  - [2.2 主动取消](#22-主动取消)
+  - [2.3 任务超时](#23-任务超时)
+  - [2.4 数据存储](#24-数据存储)
 - [3. 源码解读](#3-源码解读)
-    - [3.1 一个核心数据结构](#31-一个核心数据结构)
-      - [3.1.1 Context](#311-context)
-    - [3.2 四种具体实现](#32-四种具体实现)
-      - [3.2.1 emptyCtx](#321-emptyctx)
-      - [3.2.2 cancelCtx](#322-cancelctx)
-      - [3.2.3 timerCtx](#323-timerctx)
-      - [3.2.3 valueCtx](#323-valuectx)
-    - [3.3 六个核心方法](#33-六个核心方法)
-      - [3.3.1 Background() \&\& TODO()](#331-background--todo)
-      - [3.3.2 WithCancel()](#332-withcancel)
-      - [3.3.3 WithDeadline()](#333-withdeadline)
-      - [3.3.4 WithTimeout()](#334-withtimeout)
-      - [3.3.5 WithValue()](#335-withvalue)
+  - [3.1 一个核心数据结构](#31-一个核心数据结构)
+    - [3.1.1 Context](#311-context)
+  - [3.2 四种具体实现](#32-四种具体实现)
+    - [3.2.1 emptyCtx](#321-emptyctx)
+    - [3.2.2 cancelCtx](#322-cancelctx)
+    - [3.2.3 timerCtx](#323-timerctx)
+    - [3.2.4 valueCtx](#324-valuectx)
+  - [3.3 六个核心方法](#33-六个核心方法)
+    - [3.3.1 Background() \&\& TODO()](#331-background--todo)
+    - [3.3.2 WithCancel()](#332-withcancel)
+    - [3.3.3 WithDeadline()](#333-withdeadline)
+    - [3.3.4 WithTimeout()](#334-withtimeout)
+    - [3.3.5 WithValue()](#335-withvalue)
 - [4. 一些思考](#4-一些思考)
-    - [思考1：emptyCtx 为什么不是 struct{}类型？](#思考1emptyctx-为什么不是-struct类型)
-    - [思考2：backgound 和 todo 有什么区别？](#思考2backgound-和-todo-有什么区别)
-    - [思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？](#思考3cancelctx-怎么保证父亲--取消的同时取消儿子-)
-    - [思考4：valueCtx 可以用于数据存储吗？](#思考4valuectx-可以用于数据存储吗)
+  - [思考1：emptyCtx 为什么不是 struct{}类型？](#思考1emptyctx-为什么不是-struct类型)
+  - [思考2：backgound 和 todo 有什么区别？](#思考2backgound-和-todo-有什么区别)
+  - [思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？](#思考3cancelctx-怎么保证父亲--取消的同时取消儿子-)
+  - [思考4：valueCtx 可以用于数据存储吗？](#思考4valuectx-可以用于数据存储吗)
 
 # 1. 说在前面
 
@@ -32,11 +32,11 @@ context 是 golang 中的经典工具，主要在异步场景中用于实现并�
 
 # 2. 场景分析
 
-### 2.1 链式传递
+## 2.1 链式传递
 
 在 Go 中可以认为协程的组织是一种链式传递，每一个子协程的创建都是基于父协程，但是父协程对子协程的控制则是通过 context 实现；同样的，每一个 context 也都是基于父 context 创建，最终形成链式结构，根 context 就是 emptyCtx。
 
-### 2.2 主动取消
+## 2.2 主动取消
 
 取消场景，是父协程任务取消的时候，将子协程一并取消。
 
@@ -89,7 +89,7 @@ func main() {
 }
 ```
 
-### 2.3 任务超时
+## 2.3 任务超时
 
 超时场景，是父协程任务超时的时候会触发取消流程，需将子协程一并取消。
 
@@ -137,7 +137,7 @@ func main() {
 }
 ```
 
-### 2.3 数据存储
+## 2.4 数据存储
 
 context 可以用于数据存储，通常是用于存储一些元数据。
 
@@ -169,9 +169,9 @@ func main() {
 
 # 3. 源码解读
 
-### 3.1 一个核心数据结构
+## 3.1 一个核心数据结构
 
-#### 3.1.1 Context
+### 3.1.1 Context
 
 首先 Context 本质是官方提供的一个 interface，实现了该 interface 定义的都被称之为 context。
 
@@ -189,9 +189,9 @@ type Context interface {
 - Err() 用于 ctx 结束后获取错误信息
 - Value() 获取 ctx 中存入的键值对
 
-### 3.2 四种具体实现
+## 3.2 四种具体实现
 
-#### 3.2.1 emptyCtx
+### 3.2.1 emptyCtx
 
 官方实现的一个空 ctx 版本，默认都是返回空值，通常是作为所有 ctx 的根。
 
@@ -215,7 +215,7 @@ func (*emptyCtx) Value(key any) any {
 }
 ```
 
-#### 3.2.2 cancelCtx
+### 3.2.2 cancelCtx
 
 具有取消功能，父 ctx 取消的时候将所有子 ctx 一并取消。
 
@@ -282,7 +282,7 @@ func (c *cancelCtx) Err() error {
 > Deadline() 方法实现
 - 未实现，继承父 Context
 
-#### 3.2.3 timerCtx
+### 3.2.3 timerCtx
 
 具有定时取消的功能，因为是继承自 cancelCtx 所以同样具有主动取消功能
 
@@ -313,7 +313,7 @@ func (c *timerCtx) Deadline() (deadline time.Time, ok bool) {
 ```
 - 返回 dealline
 
-#### 3.2.3 valueCtx
+### 3.2.4 valueCtx
 
 具有存储数据的功能，通常是一些元数据信息
 
@@ -372,9 +372,9 @@ func value(c Context, key any) any {
 > Deadline() 方法实现
 - 未实现，继承父 Context
 
-### 3.3 六个核心方法
+## 3.3 六个核心方法
 
-#### 3.3.1 Background() && TODO()
+### 3.3.1 Background() && TODO()
 
 用于获取 emptyCtx，本质上没有区别，仅仅是语义上的区别。
 
@@ -393,7 +393,7 @@ func TODO() Context {
 }
 ```
 
-#### 3.3.2 WithCancel()
+### 3.3.2 WithCancel()
 
 函数说明：传入一个父 ctx 返回一个子 ctx 和一个 cancel 函数
 
@@ -494,7 +494,7 @@ func (c *cancelCtx) cancel(removeFromParent bool, err error) {
 - 遍历 children，将所有的子 ctx 都一并取消掉
 - 如果 parent 是 cancelCtx 类型，需要将当前 ctx 从 parent 的 children 中删除
 
-#### 3.3.3 WithDeadline()
+### 3.3.3 WithDeadline()
 
 函数说明：传入一个父 ctx，和一个终了时间，返回一个子 ctx 和一个 cancel 函数；timerCtx 继承自 cancelCtx，拥有 cancelCtx 的一切特性
 
@@ -552,7 +552,7 @@ func (c *timerCtx) cancel(removeFromParent bool, err error) {
 - 如果 parent 是 cancelCtx 类型，需要将当前 ctx 从 parent 的 children 中删除
 - 定时器 stop
 
-#### 3.3.4 WithTimeout()
+### 3.3.4 WithTimeout()
 
 仅仅对 WithDeadline 进行了简单封装
 
@@ -562,7 +562,7 @@ func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
 }
 ```
 
-#### 3.3.5 WithValue()
+### 3.3.5 WithValue()
 
 ```go
 func WithValue(parent Context, key, val any) Context {
@@ -581,21 +581,21 @@ func WithValue(parent Context, key, val any) Context {
 
 # 4. 一些思考
 
-### 思考1：emptyCtx 为什么不是 struct{}类型？
+## 思考1：emptyCtx 为什么不是 struct{}类型？
 
 struct{} 作为一个空类型并不占用底层存储空间，所以它的多个不同对象有可能会使用相同的地址，无法区分出 background 和 todo 对象。
 
-### 思考2：backgound 和 todo 有什么区别？
+## 思考2：backgound 和 todo 有什么区别？
 
 本质没有区别，都是 emptyCtx，更多的是语义上的区别，background 通常作为所有 ctx 链的最顶层。
 
-### 思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？
+## 思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？
 
 机制 1：cancelCtx 有一个 children 字段记录了所有的子节点，当父节点被取消的时候会给所有子节点来一刀 🔪，依次传递最终将所有子、孙子、孙孙子都刀 🔪 了。父亲取消的时候也会通知爷爷，让爷爷从 children 中删除父亲。
 
 机制 2：如果父亲不是一个 cancelCtx 类型，则不会有 children 属性怎么办？当使用 WithCancel()创建的时候，发现父亲不是 cancelCtx 就会启动一个守护协程判断父亲是否 Done()，如果父亲 over 了，就会干掉儿子并退出；否则儿子先挂了，也会退出。
 
-### 思考4：valueCtx 可以用于数据存储吗？
+## 思考4：valueCtx 可以用于数据存储吗？
 
 valueCtx 不适合视为存储介质，存放大量的 kv 数据，它的定位类似于请求头，只适合存放少量作用域较大的全局 meta 数据： 一个 valueCtx 实例只能存一个 kv 对，因此 n 个 kv 对会嵌套 n 个 valueCtx，造成空间浪费；
 基于 k 寻找 v 的过程是线性的，时间复杂度 O(N)； 不支持基于 k 的去重，相同 k 可能重复存在，并基于起点的不同，返回不同的 v。
