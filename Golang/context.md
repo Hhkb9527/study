@@ -1,28 +1,28 @@
 - [1. 说在前面](#1-说在前面)
 - [2. 场景分析](#2-场景分析)
-  - [2.1 链式传递](#21-链式传递)
-  - [2.2 主动取消](#22-主动取消)
-  - [2.3 任务超时](#23-任务超时)
-  - [2.4 数据存储](#24-数据存储)
+	- [2.1 链式传递](#21-链式传递)
+	- [2.2 主动取消](#22-主动取消)
+	- [2.3 任务超时](#23-任务超时)
+	- [2.4 数据存储](#24-数据存储)
 - [3. 源码解读](#3-源码解读)
-  - [3.1 一个核心数据结构](#31-一个核心数据结构)
-    - [3.1.1 Context](#311-context)
-  - [3.2 四种具体实现](#32-四种具体实现)
-    - [3.2.1 emptyCtx](#321-emptyctx)
-    - [3.2.2 cancelCtx](#322-cancelctx)
-    - [3.2.3 timerCtx](#323-timerctx)
-    - [3.2.4 valueCtx](#324-valuectx)
-  - [3.3 六个核心方法](#33-六个核心方法)
-    - [3.3.1 Background() \&\& TODO()](#331-background--todo)
-    - [3.3.2 WithCancel()](#332-withcancel)
-    - [3.3.3 WithDeadline()](#333-withdeadline)
-    - [3.3.4 WithTimeout()](#334-withtimeout)
-    - [3.3.5 WithValue()](#335-withvalue)
+	- [3.1 一个核心数据结构](#31-一个核心数据结构)
+		- [3.1.1 Context](#311-context)
+	- [3.2 四种具体实现](#32-四种具体实现)
+		- [3.2.1 emptyCtx](#321-emptyctx)
+		- [3.2.2 cancelCtx](#322-cancelctx)
+		- [3.2.3 timerCtx](#323-timerctx)
+		- [3.2.4 valueCtx](#324-valuectx)
+	- [3.3 六个核心方法](#33-六个核心方法)
+		- [3.3.1 Background() \&\& TODO()](#331-background--todo)
+		- [3.3.2 WithCancel()](#332-withcancel)
+		- [3.3.3 WithDeadline()](#333-withdeadline)
+		- [3.3.4 WithTimeout()](#334-withtimeout)
+		- [3.3.5 WithValue()](#335-withvalue)
 - [4. 一些思考](#4-一些思考)
-  - [思考1：emptyCtx 为什么不是 struct{}类型？](#思考1emptyctx-为什么不是-struct类型)
-  - [思考2：backgound 和 todo 有什么区别？](#思考2backgound-和-todo-有什么区别)
-  - [思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？](#思考3cancelctx-怎么保证父亲--取消的同时取消儿子-)
-  - [思考4：valueCtx 可以用于数据存储吗？](#思考4valuectx-可以用于数据存储吗)
+	- [思考1：emptyCtx 为什么不是 struct{}类型？](#思考1emptyctx-为什么不是-struct类型)
+	- [思考2：backgound 和 todo 有什么区别？](#思考2backgound-和-todo-有什么区别)
+	- [思考3：cancelCtx 怎么保证父亲 👨 取消的同时取消儿子 👦？](#思考3cancelctx-怎么保证父亲--取消的同时取消儿子-)
+	- [思考4：valueCtx 可以用于数据存储吗？](#思考4valuectx-可以用于数据存储吗)
 
 # 1. 说在前面
 
@@ -175,7 +175,7 @@ func main() {
 
 首先 Context 本质是官方提供的一个 interface，实现了该 interface 定义的都被称之为 context。
 
-```golang
+```go
 type Context interface {
 	Deadline() (deadline time.Time, ok bool)
 	Done() <-chan struct{}
