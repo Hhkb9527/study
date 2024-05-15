@@ -1,3 +1,5 @@
+本文使用到的 Go 版本为 1.18，源码位置 go1.18/src/sync/once.go
+
 ```go
 type Once struct {
 	done uint32

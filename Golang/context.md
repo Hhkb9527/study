@@ -2,7 +2,7 @@
 
 context 是 golang 中的经典工具，主要在异步场景中用于实现并发协调控制以及对 goroutine 的生命周期管理。除此之外，context 还兼有一定的数据存储能力。本文旨在剖析 context 的核心工作原理。
 
-本文使用到的 Go 版本为 1.18，源码位置 src/context/context.go
+本文使用到的 Go 版本为 1.18，源码位置 go1.18/src/context/context.go
 
 # 2. 场景分析
 
